@@ -15,3 +15,4 @@
 ## Cron (optional)
 - Monthly: `/api/cron/monthly` (add similar to previous if needed)
 - Reminders: `/api/cron/reminders` (you can port same code from sqlite version if desired)
+update
