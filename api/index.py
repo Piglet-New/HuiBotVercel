@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 import os
 import httpx
-from adapter_huibot import handle_update  # bật lại handler bot
+from adapter_huibot import handle_update
 
 app = Flask(__name__)
 
@@ -17,18 +17,18 @@ def root():
 def webhook():
     try:
         update = request.get_json(force=True)
-        handle_update(update)  # xử lý update từ Telegram
+        handle_update(update)
         return jsonify({"ok": True})
     except Exception as e:
         print("❌ Webhook error:", e)
         return jsonify({"ok": False, "error": str(e)}), 500
+
 @app.get("/api/register-webhook")
 def register_webhook():
     try:
         token = os.getenv("TELEGRAM_TOKEN")
         base_url = os.getenv("PUBLIC_URL")
 
-        # Log kiểm tra biến môi trường
         print("ENV TELEGRAM_TOKEN length:", len(token) if token else None)
         print("ENV PUBLIC_URL:", base_url)
 
@@ -36,21 +36,18 @@ def register_webhook():
             raise ValueError("Missing TELEGRAM_TOKEN or PUBLIC_URL")
 
         webhook_url = f"{base_url}/api/webhook"
-
-        # Gọi Telegram + in lại response thô để đọc lỗi
         resp = httpx.get(
             f"https://api.telegram.org/bot{token}/setWebhook",
             params={"url": webhook_url},
             timeout=10,
         )
         print("🔗 Telegram setWebhook raw:", resp.status_code, resp.text)
-
-        # Trả thẳng JSON Telegram về trình duyệt để dễ thấy lỗi
         return jsonify(resp.json())
 
     except Exception as e:
         print("❌ register_webhook error:", repr(e))
         return jsonify({"ok": False, "error": str(e)}), 500
+
 @app.get("/api/test/getme")
 def test_getme():
     try:
