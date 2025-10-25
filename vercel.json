@@ -2,14 +2,34 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/index.py",
+      "src": "app.py",
       "use": "@vercel/python"
     }
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/index.py"
+      "src": "/api/health",
+      "dest": "app.py"
+    },
+    {
+      "src": "/api/register-webhook",
+      "dest": "app.py"
+    },
+    {
+      "src": "/api/cron/reminders",
+      "dest": "app.py"
+    },
+    {
+      "src": "/api/cron/monthly",
+      "dest": "app.py"
+    },
+    {
+      "src": "/api/migrate",
+      "dest": "app.py"
+    },
+    {
+      "src": "/webhook",
+      "dest": "app.py"
     }
   ]
 }
