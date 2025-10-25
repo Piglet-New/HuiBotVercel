@@ -1,5 +1,6 @@
-Flask
-httpx
-pandas
+fastapi
+uvicorn
+python-telegram-bot==21.6
+requests
 psycopg2-binary
-python-telegram-bot==20.3
+pydantic
