@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
-import os
-import httpx
+import os, httpx
 from adapter_huibot import handle_update
 
 app = Flask(__name__)
@@ -28,10 +27,8 @@ def register_webhook():
     try:
         token = os.getenv("TELEGRAM_TOKEN")
         base_url = os.getenv("PUBLIC_URL")
-
         print("ENV TELEGRAM_TOKEN length:", len(token) if token else None)
         print("ENV PUBLIC_URL:", base_url)
-
         if not token or not base_url:
             raise ValueError("Missing TELEGRAM_TOKEN or PUBLIC_URL")
 
@@ -43,7 +40,6 @@ def register_webhook():
         )
         print("🔗 Telegram setWebhook raw:", resp.status_code, resp.text)
         return jsonify(resp.json())
-
     except Exception as e:
         print("❌ register_webhook error:", repr(e))
         return jsonify({"ok": False, "error": str(e)}), 500
