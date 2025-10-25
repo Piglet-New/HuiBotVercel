@@ -1,45 +1,34 @@
-import os, json, logging
-from fastapi import FastAPI, Request, HTTPException
+# app.py (bổ sung import)
+from fastapi import FastAPI, Request, HTTPException, Query
 from fastapi.responses import JSONResponse
-import requests
-import psycopg2
-from psycopg2.extras import RealDictCursor
-from huibot.menu import handle_update
-from huibot.storage_pg import run_sql_file
+from bot import send_message  # dùng để báo lỗi về chat nếu có
 
-logging.basicConfig(level=logging.INFO)
-app = FastAPI()
-
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN","")
-PUBLIC_URL = os.getenv("PUBLIC_URL","")
-WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET","")
-DATABASE_URL = os.getenv("DATABASE_URL","")
-
-def _assert_secret(req: Request):
-    secret = req.query_params.get("secret")
+def _check_secret(secret: str):
     if not WEBHOOK_SECRET or secret != WEBHOOK_SECRET:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
-@app.get("/api/health")
-def health():
-    ok = bool(TELEGRAM_TOKEN and PUBLIC_URL)
-    return {"ok": ok}
+@app.get("/api/migrate")
+def migrate_get(secret: str = Query(...)):
+    _check_secret(secret)
+    path = os.path.join(os.path.dirname(__file__), "migrations", "001_init.sql")
+    run_sql_file(DATABASE_URL, path)
+    return {"migrated": True}
 
-@app.post("/api/register-webhook")
-async def register_webhook(request: Request):
-    _assert_secret(request)
+@app.post("/api/migrate")
+async def migrate_post(request: Request):
+    _check_secret(request.query_params.get("secret"))
+    path = os.path.join(os.path.dirname(__file__), "migrations", "001_init.sql")
+    run_sql_file(DATABASE_URL, path)
+    return {"migrated": True}
+
+@app.get("/api/register-webhook")
+def register_webhook_get(secret: str = Query(...)):
+    _check_secret(secret)
     if not TELEGRAM_TOKEN or not PUBLIC_URL:
         raise HTTPException(400, "Missing TELEGRAM_TOKEN or PUBLIC_URL")
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/setWebhook"
     resp = requests.post(url, json={"url": f"{PUBLIC_URL}/webhook"})
     return JSONResponse(resp.json())
-
-@app.post("/api/migrate")
-async def migrate(request: Request):
-    _assert_secret(request)
-    path = os.path.join(os.path.dirname(__file__), "migrations", "001_init.sql")
-    run_sql_file(DATABASE_URL, path)
-    return {"migrated": True}
 
 @app.post("/webhook")
 async def telegram_webhook(request: Request):
@@ -47,17 +36,12 @@ async def telegram_webhook(request: Request):
     try:
         await handle_update(update)
     except Exception as e:
+        # Báo lỗi ra log + cố gắng gửi về chat để bạn thấy ngay
         logging.exception("Update handling failed: %s", e)
+        try:
+            chat_id = (update.get("message") or {}).get("chat", {}).get("id")
+            if chat_id:
+                send_message(chat_id, f"❗Lỗi xử lý lệnh: {e}")
+        except Exception:
+            pass
     return {"ok": True}
-
-@app.get("/api/cron/reminders")
-async def cron_reminders(request: Request):
-    _assert_secret(request)
-    # TODO: build group-wise reminders
-    return {"scheduled": True}
-
-@app.get("/api/cron/monthly")
-async def cron_monthly(request: Request):
-    _assert_secret(request)
-    # TODO: monthly jobs (closing cycles/report)
-    return {"scheduled": True}
