@@ -142,10 +142,15 @@ def extract_confirm_parts(text: str) -> tuple[int | None, str | None]:
 
 
 def parse_delete_target(text: str) -> str | None:
-    lowered = text.lower()
+    lowered = text.lower().strip()
+
+    # Ưu tiên case đặc biệt: "xóa giao dịch mới nhất"
+    if lowered == "xóa giao dịch mới nhất":
+        return "latest"
+
     match = re.search(r"xóa giao dịch\s+(.+)", lowered)
     if match:
         return match.group(1).strip()
-    if lowered.strip() == "xóa giao dịch mới nhất":
-        return "latest"
+
     return None
+
