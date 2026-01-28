@@ -64,6 +64,8 @@ class ParsedIntent:
 
 def parse_intent(text: str) -> ParsedIntent:
     lowered = text.lower().strip()
+    if lowered.startswith("xác nhận ưu đãi"):
+    return ParsedIntent(intent="confirm_offer", raw_text=lowered)
     if lowered.startswith("xác nhận"):
         return ParsedIntent(intent="confirm", raw_text=lowered)
     if lowered.startswith("xoa ") or lowered.startswith("xóa "):
