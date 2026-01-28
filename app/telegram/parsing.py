@@ -144,7 +144,6 @@ def extract_confirm_parts(text: str) -> tuple[int | None, str | None]:
 def parse_delete_target(text: str) -> str | None:
     lowered = text.lower().strip()
 
-    # Ưu tiên case đặc biệt: "xóa giao dịch mới nhất"
     if lowered == "xóa giao dịch mới nhất":
         return "latest"
 
