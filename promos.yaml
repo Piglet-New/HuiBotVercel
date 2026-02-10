@@ -1,0 +1,16 @@
+- offer_id: seed-vcb-an-uong
+  bank: VCB
+  reward_type: cashback
+  reward_percent: 10
+  cap_vnd: 200000
+  min_spend_vnd: 200000
+  category: an_uong
+  merchant: haidilao
+  location: HCM
+  start_date: "2024-01-01"
+  end_date: "2099-12-31"
+  activation_required: false
+  needs_confirmation: true
+  verified: false
+  source_name: seed
+  source_url: ""
